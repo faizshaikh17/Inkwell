@@ -132,27 +132,24 @@ bookRouter.delete("/:id", LoggedIn, async (req, res) => {
 bookRouter.post("/borrow", LoggedIn, async (req, res) => {
     try {
         const user = req.user;
-        const { _id, dateBorrow } = req.body;
-        var book = await Book.findOne({
+        const { _id, borrowDate } = req.body;
+        const book = await Book.findOne({
             $and: [{ _id }, { availability: "yes" }]
         }).select("title author genre description");
         if (!book) {
             throw new Error("Book already borrowed")
         }
-        var updateBookAvailability = await Book.findByIdAndUpdate(_id, { availability: "no" });
+        const updateBookAvailability = await Book.findByIdAndUpdate(_id, { availability: "no", borrowDate });
 
         console.log(book);
         await updateBookAvailability.save();
 
-        const data = user.name;
         res.json({
             status: "201",
             message: "Book borrowed sucessfully",
             book,
-            dateBorrow,
-            borrowedBy: {
-                data
-            }
+            borrowDate: borrowDate,
+            borrowedBy: user.name
         });
 
 
@@ -160,6 +157,35 @@ bookRouter.post("/borrow", LoggedIn, async (req, res) => {
         res.json({
             status: "400",
             message: `Cant borrow book ${err.message}`
+        });
+    }
+});
+
+
+bookRouter.post("/return", LoggedIn, async (req, res) => {
+    try {
+        const user = req.user;
+        const { _id, returnDate } = req.body;
+        const book = await Book.findOne({
+            $and: [{ _id }, { availability: "no" }]
+        }).select("title author genre description availability");
+        if (!book) {
+            throw new Error("Book not found");
+        }
+        console.log(book);
+        const updateBookAvailability = await Book.findByIdAndUpdate(_id, { availability: "yes", returnDate })
+        await updateBookAvailability.save();
+        res.json({
+            status: "201",
+            message: "Book returned sucessfully",
+            book,
+            returnDate: returnDate,
+            returnBy: user.name
+        });
+    } catch (err) {
+        res.json({
+            status: "400",
+            message: `Try returning again ${err.message}`
         });
     }
 })
