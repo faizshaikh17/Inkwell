@@ -25,6 +25,9 @@ const bookSchema = mongoose.Schema({
     },
     returnDate: {
         type: String,
+    },
+    renewDate: {
+        type: String,
     }
 
 },

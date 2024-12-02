@@ -127,6 +127,7 @@ bookRouter.delete("/:id", LoggedIn, async (req, res) => {
     }
 });
 
+
 //------------------Feature to borrow a book from the collection------------------
 
 bookRouter.post("/borrow", LoggedIn, async (req, res) => {
@@ -139,9 +140,8 @@ bookRouter.post("/borrow", LoggedIn, async (req, res) => {
         if (!book) {
             throw new Error("Book already borrowed")
         }
-        const updateBookAvailability = await Book.findByIdAndUpdate(_id, { availability: "no", borrowDate });
+        const updateBookAvailability = await Book.findByIdAndUpdate(_id, { availability: "no", borrowDate, returnDate: "", renewDate: "" });
 
-        console.log(book);
         await updateBookAvailability.save();
 
         res.json({
@@ -162,18 +162,21 @@ bookRouter.post("/borrow", LoggedIn, async (req, res) => {
 });
 
 
+//------------------Feature to return a book from the collection------------------
+
 bookRouter.post("/return", LoggedIn, async (req, res) => {
     try {
         const user = req.user;
         const { _id, returnDate } = req.body;
         const book = await Book.findOne({
             $and: [{ _id }, { availability: "no" }]
-        }).select("title author genre description availability");
+        }).select("title author genre description");
         if (!book) {
             throw new Error("Book not found");
         }
         console.log(book);
-        const updateBookAvailability = await Book.findByIdAndUpdate(_id, { availability: "yes", returnDate })
+        const updateBookAvailability = await Book.findByIdAndUpdate(_id, { availability: "yes", returnDate, borrowDate: "", renewDate: "" });
+
         await updateBookAvailability.save();
         res.json({
             status: "201",
@@ -188,5 +191,36 @@ bookRouter.post("/return", LoggedIn, async (req, res) => {
             message: `Try returning again ${err.message}`
         });
     }
-})
+});
+
+//------------------Feature to renew a book from the collection------------------
+
+bookRouter.post("/renew", LoggedIn, async (req, res) => {
+    try {
+        const user = req.user;
+        const { _id, renewDate } = req.body;
+        const book = await Book.findOne({
+            $and: [{ _id }, { availability: "no" }]
+        }).select("title author genre description");
+        if (!book) {
+            throw new Error("Book not valid")
+        }
+        const updateBookAvailability = await Book.findByIdAndUpdate(_id, { renewDate });
+        await updateBookAvailability.save();
+        res.json({
+            status: "201",
+            message: "Book renewed sucessfully",
+            book,
+            renewDate: renewDate,
+            borrowedBy: user.name
+        });
+
+
+    } catch (err) {
+        res.json({
+            status: "400",
+            message: `Cant renew book ${err.message}`
+        });
+    }
+});
 module.exports = bookRouter; 
