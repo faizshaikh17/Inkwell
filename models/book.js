@@ -1,3 +1,4 @@
+const { json } = require('express');
 const mongoose = require('mongoose');
 
 const bookSchema = mongoose.Schema({
@@ -6,9 +7,18 @@ const bookSchema = mongoose.Schema({
         required: true
     },
     author: {
-        type: String,
+        type: JSON,
         required: true
     },
+    genre: {
+        type: String,
+    },
+    description: {
+        type: String,
+    },
+    availability: {
+        type: String
+    }
 
 },
     {

@@ -52,14 +52,14 @@ authRouter.post("/login", async (req, res) => {
         res.cookie("token", token).send("login Succesful");
 
     } catch (err) {
-        res.status(400).send("Can't login" + err.message);
+        res.status(400).send("Can't login " + err.message);
     }
 })
 
 
 // -------------Forgot password feature for User --------------
 
-authRouter.patch("/forgotpassword", async (req, res) => {
+authRouter.patch("/password/reset", async (req, res) => {
     try {
         const { emailId, newPassword } = req.body;
         console.log(emailId, newPassword);

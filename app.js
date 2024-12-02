@@ -14,6 +14,6 @@ dbConnect()
 app.use(express.json());
 app.use(cookieParser());
 
-app.use('/', authRouter);
-app.use('/', bookRouter);
+app.use('/auth', authRouter);
+app.use('/books', bookRouter);
 app.listen(port);
