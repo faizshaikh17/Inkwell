@@ -175,7 +175,7 @@ bookRouter.post("/return", LoggedIn, async (req, res) => {
             throw new Error("Book not found");
         }
         console.log(book);
-        const updateBookAvailability = await Book.findByIdAndUpdate(_id, { availability: "yes", returnDate, borrowDate: "", renewDate: "" });
+        const updateBookAvailability = await Book.findByIdAndUpdate(_id, { availability: "yes", returnDate, renewDate: "" });
 
         await updateBookAvailability.save();
         res.json({
@@ -223,4 +223,75 @@ bookRouter.post("/renew", LoggedIn, async (req, res) => {
         });
     }
 });
+
+
+//------------------Feature to reserve a book from the collection------------------
+
+bookRouter.post("/reserve", LoggedIn, async (req, res) => {
+    try {
+        const user = req.user;
+        const { _id } = req.body;
+        const book = await Book.findOne({
+            $and: [{ _id }, { availability: "yes" }]
+        }).select("title author genre description availability");
+
+        if (!book) {
+            throw new Error("Book already reserved");
+        }
+
+        const updateBookAvailability = await Book.findByIdAndUpdate(_id, { availability: "reserved", borrowDate: "", returnDate: "", renewDate: "" });
+
+        await updateBookAvailability.save();
+
+        res.json({
+            status: "201",
+            message: "Book reserved sucessfully",
+            book,
+            reservedBy: user.name
+        });
+
+
+    } catch (err) {
+        res.json({
+            status: "400",
+            message: `Cant reserve book ${err.message}`
+        });
+    }
+});
+
+
+//------------------Feature to cancel reservation a book from the collection------------------
+
+bookRouter.delete("/reserve/:id", LoggedIn, async (req, res) => {
+    try {
+        const user = req.user;
+        const _id = req.params.id;
+        const book = await Book.findOne({
+            $and: [{ _id }, { availability: "reserved" }]
+        }).select("title author genre description");
+        console.log(book);
+        if (!book) {
+            throw new Error("Book is not reserved")
+        }
+        const updateBookAvailability = await Book.findByIdAndUpdate(_id, { availability: "yes", borrowDate: "", returnDate: "", renewDate: "" });
+
+        await updateBookAvailability.save();
+
+        res.json({
+            status: "201",
+            message: "Reservation cancelled sucessfully",
+            book,
+            cancelledBy: user.name,
+        });
+
+
+    } catch (err) {
+        res.json({
+            status: "400",
+            message: `Can't cancel reservation. ${err.message}`
+        });
+    }
+});
+
+
 module.exports = bookRouter; 
