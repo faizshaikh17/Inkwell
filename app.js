@@ -3,8 +3,9 @@ const app = express();
 const port = 3000;
 const cookieParser = require('cookie-parser')
 
-const authRouter = require('./routes/auth')
-const bookRouter = require('./routes/bookManagement')
+const authRouter = require('./routes/auth');
+const bookRouter = require('./routes/bookManagement');
+const bookBorrowPay = require('./routes/bookBorrow&Payment');
 
 const dbConnect = require('./config/database')
 dbConnect()
@@ -16,4 +17,6 @@ app.use(cookieParser());
 
 app.use('/auth', authRouter);
 app.use('/books', bookRouter);
+app.use('/books', bookBorrowPay);
+
 app.listen(port);

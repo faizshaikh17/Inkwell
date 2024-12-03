@@ -20,6 +20,9 @@ const bookSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    borrowedBy: {
+        type: String,
+    },
     borrowDate: {
         type: String,
     },

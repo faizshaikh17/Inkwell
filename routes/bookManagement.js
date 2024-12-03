@@ -36,7 +36,7 @@ bookRouter.get("/", LoggedIn, async (req, res) => {
     try {
         const page = req.query.page;
         var size = req.query.size;
-        size = size > 50 ? 50 : size;
+        size = size > 10 ? 10 : size;
         const books = await Book.find({}).skip(page * size).limit(size);
         res.json({ books })
     } catch (err) {
@@ -133,6 +133,7 @@ bookRouter.delete("/:id", LoggedIn, async (req, res) => {
 bookRouter.post("/borrow", LoggedIn, async (req, res) => {
     try {
         const user = req.user;
+        const borrowedBy = user.name;
         const { _id, borrowDate } = req.body;
         const book = await Book.findOne({
             $and: [{ _id }, { availability: "yes" }]
@@ -140,7 +141,7 @@ bookRouter.post("/borrow", LoggedIn, async (req, res) => {
         if (!book) {
             throw new Error("Book already borrowed")
         }
-        const updateBookAvailability = await Book.findByIdAndUpdate(_id, { availability: "no", borrowDate, returnDate: "", renewDate: "" });
+        const updateBookAvailability = await Book.findByIdAndUpdate(_id, { availability: "no", borrowedBy, borrowDate, returnDate: "", renewDate: "" });
 
         await updateBookAvailability.save();
 
@@ -148,8 +149,8 @@ bookRouter.post("/borrow", LoggedIn, async (req, res) => {
             status: "201",
             message: "Book borrowed sucessfully",
             book,
-            borrowDate: borrowDate,
-            borrowedBy: user.name
+            borrowDate,
+            borrowedBy
         });
 
 
@@ -292,6 +293,7 @@ bookRouter.delete("/reserve/:id", LoggedIn, async (req, res) => {
         });
     }
 });
+
 
 
 module.exports = bookRouter; 
