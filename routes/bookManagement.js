@@ -135,6 +135,7 @@ bookRouter.post("/borrow", LoggedIn, async (req, res) => {
         const user = req.user;
         const borrowedBy = user.name;
         const { _id, borrowDate } = req.body;
+        borrowDate
         const book = await Book.findOne({
             $and: [{ _id }, { availability: "yes" }]
         }).select("title author genre description");

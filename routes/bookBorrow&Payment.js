@@ -29,4 +29,24 @@ bookBorrowPay.get("/user/history", LoggedIn, async (req, res) => {
     }
 });
 
+bookBorrowPay.get("/user/fines", LoggedIn, async (req, res) => {
+    try {
+        const user = req.user;
+        const borrowedBy = user.name;
+        var fine;
+        const book = await Book.findOne({ borrowedBy });
+        const day = Math.abs(Math.round((new Date(book.borrowDate).getTime() - new Date().getTime()) / (24 * 3600000)));
+        console.log(day)
+        if (50 >= day) {
+            fine = (day - 10) * 1.25
+        } else if (day > 50) {
+            fine = (40 * 1.25) + (day - 50) * 2.25
+        }
+        res.json(`${borrowedBy} fine is ${fine}`);
+    } catch (err) {
+        res.status(400).json("Fine not found");
+    }
+
+});
+
 module.exports = bookBorrowPay;
